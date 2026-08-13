@@ -287,7 +287,7 @@ def get_price_text(category):
     headers = data["headers"]
     
     # Сортируем товары
-    sorted_items = sorted(items.items())
+    sorted_items = items.items()
     
     # Группируем товары по заголовкам
     grouped_items = {}
