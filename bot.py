@@ -275,7 +275,7 @@ def get_main_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 def get_price_text(category):
-    """Возвращает отформатированный текст с ценами для категории (с группировкой по заголовкам)"""
+    """Возвращает отформатированный текст с ценами для категории (дизайн как на скрине)"""
     global PRICES
     
     if category not in PRICES or not PRICES[category]["items"]:
@@ -286,7 +286,7 @@ def get_price_text(category):
     item_to_header = data["item_to_header"]
     headers = data["headers"]
     
-    # Сортируем товары
+    # Оставляем порядок как в файле (без сортировки)
     sorted_items = items.items()
     
     # Группируем товары по заголовкам
@@ -313,7 +313,14 @@ def get_price_text(category):
             for item_name, price in grouped_items[header]:
                 text_parts.append(f"{item_name} – {price}")
     
-    return "\n".join(text_parts)
+    # Объединяем всё в один текст
+    full_text = "\n".join(text_parts)
+    
+    # Убираем эмодзи валюты (₽) и лишние пробелы перед ней, чтобы было как на скрине
+    # (Ищем цифры, после которых идёт пробел и ₽, и заменяем просто на цифры)
+    full_text = re.sub(r'(\d+)\s+₽', r'\1', full_text)
+    
+    return full_text
 
 def get_price_keyboard(category):
     """Создает клавиатуру с ценами для выбранной категории"""
@@ -451,6 +458,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # --- УНИВЕРСАЛЬНАЯ ФУНКЦИЯ БЕЗОПАСНОГО ОТВЕТА ---
     async def safe_reply(text, markup=None, parse_mode="Markdown"):
+        # Экранируем спецсимволы для Markdown, чтобы избежать ошибок парсинга
+        if parse_mode == "Markdown":
+            escape_chars = r'([_*\[\]()~`>#+\-=|{}.!])'
+            text = re.sub(escape_chars, r'\\\1', text)
+        
         if query.message.text:
             await query.edit_message_text(text, parse_mode=parse_mode, reply_markup=markup)
         else:
