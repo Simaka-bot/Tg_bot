@@ -101,14 +101,6 @@ BRAND_KEYWORDS = [
 ]
 
 def parse_price_file(file_path):
-    """
-    Парсит файл с ценами и возвращает структурированный словарь.
-    Возвращает: {
-        "items": {"Название товара": "Цена", ...},
-        "headers": ["Заголовок 1", "Заголовок 2", ...],
-        "item_to_header": {"Название товара": "Заголовок", ...}
-    }
-    """
     result = {
         "items": {},
         "headers": [],
@@ -130,11 +122,9 @@ def parse_price_file(file_path):
             if not line:
                 continue
             
-            # Пропускаем служебные строки-разделители
             if line.startswith('⎯') or line.startswith('_') or line.startswith('*') or line.startswith('__') or line.startswith('____') or line.startswith('---'):
                 continue
             
-            # === УНИВЕРСАЛЬНОЕ ПРАВИЛО ===
             has_price = False
             if re.search(r'\d+', line) or re.search(r'[₽р$€]', line):
                 has_price = True
@@ -247,6 +237,32 @@ def get_main_keyboard():
             row.append(InlineKeyboardButton(f"{emoji2} {cat2}", callback_data=f"cat_{safe_cat2}"))
         keyboard.append(row)
     
+    return InlineKeyboardMarkup(keyboard)
+
+# --- НОВАЯ ФУНКЦИЯ ДЛЯ КАНАЛА ---
+def get_channel_keyboard():
+    active_categories = []
+    for cat in CATEGORY_FILES.keys():
+        if cat in PRICES:
+            active_categories.append(cat)
+    for cat in SPECIAL_CATEGORIES:
+        if cat not in active_categories:
+            active_categories.append(cat)
+    
+    bot_username = "my_tecno_drug_bot"
+    keyboard = []
+    for i in range(0, len(active_categories), 2):
+        row = []
+        cat1 = active_categories[i]
+        emoji1 = CATEGORY_EMOJIS.get(cat1, "")
+        safe_cat1 = re.sub(r'[^a-zA-Z0-9_]', '_', cat1)
+        row.append(InlineKeyboardButton(f"{emoji1} {cat1}", url=f"https://t.me/{bot_username}?start=cat_{safe_cat1}"))
+        if i + 1 < len(active_categories):
+            cat2 = active_categories[i + 1]
+            emoji2 = CATEGORY_EMOJIS.get(cat2, "")
+            safe_cat2 = re.sub(r'[^a-zA-Z0-9_]', '_', cat2)
+            row.append(InlineKeyboardButton(f"{emoji2} {cat2}", url=f"https://t.me/{bot_username}?start=cat_{safe_cat2}"))
+        keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
 
 def get_price_text(category):
@@ -398,6 +414,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown",
             reply_markup=get_main_keyboard()
         )
+
+# --- ОБРАБОТЧИК КОМАНДЫ ДЛЯ КАНАЛА ---
+async def menu_for_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.type != "private":
+        return
+    await update.message.reply_text(
+        "📢 *Меню для канала*\n\nСкопируйте это сообщение и опубликуйте его в вашем канале. Все кнопки ведут в личные сообщения бота.",
+        parse_mode="Markdown"
+    )
+    await update.message.reply_text(
+        "📱 *Выберите категорию товара:*",
+        parse_mode="Markdown",
+        reply_markup=get_channel_keyboard()
+    )
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global PRICES
@@ -637,6 +667,7 @@ def main():
     application.add_handler(CommandHandler("set_channel", set_channel))
     application.add_handler(CommandHandler("test_morning", test_morning))
     application.add_handler(CommandHandler("reload", reload_prices))
+    application.add_handler(CommandHandler("menu_for_channel", menu_for_channel))
     application.add_handler(CallbackQueryHandler(button_handler))
 
     job_queue = application.job_queue
@@ -662,6 +693,7 @@ def main():
     print("  /post - Опубликовать прайс-лист")
     print("  /reload - Перезагрузить прайс-лист")
     print("  /test_morning - Тестовая рассылка")
+    print("  /menu_for_channel - Создать меню для публикации в канал")
 
     application.run_polling(timeout=30)
 
