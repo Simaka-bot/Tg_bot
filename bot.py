@@ -101,6 +101,14 @@ BRAND_KEYWORDS = [
 ]
 
 def parse_price_file(file_path):
+    """
+    Парсит файл с ценами и возвращает структурированный словарь.
+    Возвращает: {
+        "items": {"Название товара": "Цена", ...},
+        "headers": ["Заголовок 1", "Заголовок 2", ...],
+        "item_to_header": {"Название товара": "Заголовок", ...}
+    }
+    """
     result = {
         "items": {},
         "headers": [],
@@ -122,9 +130,11 @@ def parse_price_file(file_path):
             if not line:
                 continue
             
+            # Пропускаем служебные строки-разделители
             if line.startswith('⎯') or line.startswith('_') or line.startswith('*') or line.startswith('__') or line.startswith('____') or line.startswith('---'):
                 continue
             
+            # === УНИВЕРСАЛЬНОЕ ПРАВИЛО ===
             has_price = False
             if re.search(r'\d+', line) or re.search(r'[₽р$€]', line):
                 has_price = True
@@ -239,7 +249,6 @@ def get_main_keyboard():
     
     return InlineKeyboardMarkup(keyboard)
 
-# --- НОВАЯ ФУНКЦИЯ ДЛЯ КАНАЛА ---
 def get_channel_keyboard():
     active_categories = []
     for cat in CATEGORY_FILES.keys():
@@ -415,19 +424,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=get_main_keyboard()
         )
 
-# --- ОБРАБОТЧИК КОМАНДЫ ДЛЯ КАНАЛА ---
 async def menu_for_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type != "private":
         return
-    await update.message.reply_text(
-        "📢 *Меню для канала*\n\nСкопируйте это сообщение и опубликуйте его в вашем канале. Все кнопки ведут в личные сообщения бота.",
-        parse_mode="Markdown"
+    
+    if not CHANNEL_ID:
+        await update.message.reply_text("❌ Сначала установите ID канала командой /set_channel")
+        return
+
+    text = (
+        "📢 *Меню для канала*\n\n"
+        "📱 *Выберите категорию товара:*\n\n"
+        "Все кнопки ниже ведут в личные сообщения бота, где вы сможете посмотреть актуальные цены и сделать заказ."
     )
-    await update.message.reply_text(
-        "📱 *Выберите категорию товара:*",
+    
+    # Отправляем прямо в канал
+    await context.bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=text,
         parse_mode="Markdown",
         reply_markup=get_channel_keyboard()
     )
+    
+    await update.message.reply_text("✅ Сообщение с кнопками успешно отправлено в канал!")
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global PRICES
@@ -693,7 +712,7 @@ def main():
     print("  /post - Опубликовать прайс-лист")
     print("  /reload - Перезагрузить прайс-лист")
     print("  /test_morning - Тестовая рассылка")
-    print("  /menu_for_channel - Создать меню для публикации в канал")
+    print("  /menu_for_channel - Отправить меню с кнопками в канал")
 
     application.run_polling(timeout=30)
 
