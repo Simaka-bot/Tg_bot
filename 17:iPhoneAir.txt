@@ -7,15 +7,16 @@ ____
 🇯🇵 17 512 Sage (esim) 89500
 
 🇮🇳 17 256Gb Black (sim+esim) - 76500
-🇮🇳 17 256Gb Blue (sim+esim) - 75500
-🇮🇳 17 256Gb Lavender (sim+esim) - 79000
-🇮🇳 17 256Gb Sage (sim+esim) - 76000
-🇮🇳 17 256Gb White (sim+esim) - 76500
+🇮🇳 17 256Gb Blue (sim+esim) - 74500
+🇮🇳 17 256Gb Lavender (sim+esim) - 77000
+🇮🇳 17 256Gb Sage (sim+esim) - 74500🚗18.08
+🇮🇳 17 256Gb White (sim+esim) - 76500🚗18.08
 ___
 Air (esim) 
 
-🇯🇵  Air 256 Blue (esim) - 73000
-🇯🇵  Air 256 Gold (esim) - 74000
+🇯🇵  Air 256 Black (esim) - 74000
+🇯🇵  Air 256 Blue (esim) - 74000
+🇯🇵  Air 256 Gold (esim) - 73500
 🇯🇵  Air 256 White (esim) - 75000
 ____
 __
